@@ -1,0 +1,30 @@
+<html lang='en'>
+	<head>
+		<title>Hello World Widget</title>
+	</head>
+<body>
+	<h1>{{ context.message }}</h1>
+<table width='100%' border=2 cellpadding=0 cellspacing=0>
+  <tr><td>Color</td><td bgcolor='{{ context.helloColor }}'></td><tr>
+  <tr><td>Image</td><td><img alt='image' src='{{ context.helloIcon.previewSmall }}' /></td><tr>
+  <tr><td>Checkbox</td><td>{{ context.helloCheckbox }}</td><tr>
+  <tr><td>Toggle</td><td>{{ context.helloToggle }}</td><tr>
+  <tr><td>Translated Text</td><td>{{ context.helloTranslatedText }}</td><tr>
+  <tr><td>Numeric</td><td>{{ context.helloNumeric }}</td><tr>
+  <tr><td>Dropdown</td><td>{{ context.helloDropdown }}</td><tr>
+  <tr><td>Multiselect</td><td>{{ context.helloMultiselect }}</td><tr>
+  <tr><td>Model Image</td><td><img alt='image' src='{{ context.helloModelImage.previewSmall }}' /></td><tr>
+  <tr><td>Model Header Title</td><td>{{ context.helloModelHeaderTitle.title }}</td><tr>
+  <tr><td>Page Link</td><td>{{ context.helloPageLink }}</td><tr>
+</table>
+  <br>
+  {{ context.helloCheckbox }}
+  <br>
+  {{ context.helloTranslatedText }}
+  <hr>
+  <code>{{ context }}</code>
+	<script src="/iot/sw-register.min.js"></script>
+</body>
+<footer>
+	<center>{{ context.footerText }}</center>
+</html>

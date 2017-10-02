@@ -1,0 +1,11 @@
+urllib3==1.22
+requests==2.18.4
+eventlet==0.21.0
+Flask==0.12.2
+Flask-Redis==0.3.0
+greenlet==0.4.12
+gunicorn==19.7.1
+itsdangerous==0.24
+Jinja2==2.9
+blinker
+rollbar
