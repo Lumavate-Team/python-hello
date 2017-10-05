@@ -68,6 +68,7 @@ def get_properties():
       "label": "Hello Numeric",
       "name": "helloNumeric",
       "type": "numeric",
+      "default": 3,
       "options": {
         "min": 1,
         "max": 10
@@ -104,7 +105,10 @@ def get_properties():
       "section": "Hello World Section",
       "label": "Hello Model Image",
       "name": "helloModelImage",
-      "type": "model-image-upload"
+      "type": "model-image-upload",
+      "default": {
+        "mode": "model-image"
+      }
     },
     {
       "classification": "Hello World Tab",
@@ -163,7 +167,7 @@ def render(instance_id):
 
   # Make a request to the Experience Cloud Services to discover what the
   # current config is.
-  headers = {'Authorization': pwa_jwt}
+  headers = {'Authorization': 'Bearer ' + pwa_jwt}
   lumavate_url = os.environ.get('BASE_URL')
   url = '{}/pwa/v1/widget-instances/{}'.format(lumavate_url, instance_id)
   data_response = requests.get(url, headers=headers)
