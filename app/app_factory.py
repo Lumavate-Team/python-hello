@@ -13,25 +13,10 @@ def create_app(options=None):
       for key, value in options.items():
         app.config[key] = value
 
-    blueprints = [
-      iot_api_core.common_routes_blueprint
-    ]
-
-    def behavior_factory(instance_id):
-      namespace = None
-      if hasattr(g, 'namespace'):
-        namespace = g.namespace
-
-      return behavior.InstanceVersion.InstanceVersionBehavior(namespace, instance_id)
-
-    iot_api_core.common_routes_blueprint.behavior_factory = behavior_factory
-
-    @app.route('/discover/icons/<string:icon>')
-    def return_icon(icon):
+    @app.route('/<string:integration_cloud>/<string:widget_type>/discover/icons/<string:icon>')
+    def return_icon(integration_cloud, widget_type, icon):
       return send_from_directory('icons', icon)
 
     app.register_blueprint(default_blueprint)
-    for b in blueprints:
-      app.register_blueprint(b, url_prefix="/api")
 
     return app

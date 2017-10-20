@@ -13,8 +13,8 @@ def make_payload(data):
 
   return payload
 
-@default_blueprint.route('/discover/properties', methods=['GET'])
-def get_properties():
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/discover/properties', methods=['GET'])
+def get_properties(integration_cloud, widget_type):
   properties = [
     {
       'classification': 'Hello World Tab',
@@ -146,16 +146,16 @@ def get_root_uri():
 def get_instance_uri(instance_id):
   return get_root_uri() + '/ic/hello/' + str(instance_id)
 
-@default_blueprint.route('/instances/<int:instance_id>/on-create-version', methods=['POST'])
-def on_create_version(instance_id):
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/instances/<int:instance_id>/on-create-version', methods=['POST'])
+def on_create_version(integration_cloud, widget_type, instance_id):
   r = request.get_json()
   if r['message'] == 'Nope':
     return make_response('Invalid Value', 400)
 
   return jsonify(make_payload(r))
 
-@default_blueprint.route('/instances/<int:instance_id>/<int:version_id>/after-create-version', methods=['POST'])
-def after_create_version(instance_id, version_id):
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/instances/<int:instance_id>/<int:version_id>/after-create-version', methods=['POST'])
+def after_create_version(integration_cloud, widget_type, instance_id, version_id):
   r = request.get_json()
   return jsonify(make_payload(r))
 
@@ -165,8 +165,8 @@ def make_get_request(url):
   url = '{}/{}'.format(lumavate_url, url)
   return requests.get(url, headers=headers)
 
-@default_blueprint.route('/<int:instance_id>', methods=['GET'])
-def render(instance_id):
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>', methods=['GET'])
+def render(integration_cloud, widget_type, instance_id):
   # Get the PWA JWT for basic auth context. This jwt will give enough access
   # to be able to query for config data within the microsite
   g.pwa_jwt = request.cookies.get('pwa_jwt')
