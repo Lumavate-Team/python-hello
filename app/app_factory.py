@@ -26,7 +26,7 @@ def create_app(options=None):
 
     iot_api_core.common_routes_blueprint.behavior_factory = behavior_factory
 
-    @app.route('/icons/api/instances/icons/<string:icon>')
+    @app.route('/discover/icons/<string:icon>')
     def return_icon(icon):
       return send_from_directory('icons', icon)
 

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, make_response, redirect, render_template
+from flask import Blueprint, jsonify, request, make_response, redirect, render_template, g
 import requests
 import os
 
@@ -144,7 +144,7 @@ def get_root_uri():
   return 'https://' + request.host
 
 def get_instance_uri(instance_id):
-  return get_root_uri() + '/iot/hello/' + str(instance_id)
+  return get_root_uri() + '/ic/hello/' + str(instance_id)
 
 @default_blueprint.route('/instances/<int:instance_id>/on-create-version', methods=['POST'])
 def on_create_version(instance_id):
@@ -159,18 +159,19 @@ def after_create_version(instance_id, version_id):
   r = request.get_json()
   return jsonify(make_payload(r))
 
+def make_get_request(url):
+  headers = {'Authorization': 'Bearer ' + str(g.pwa_jwt)}
+  lumavate_url = os.environ.get('BASE_URL')
+  url = '{}/{}'.format(lumavate_url, url)
+  return requests.get(url, headers=headers)
+
 @default_blueprint.route('/<int:instance_id>', methods=['GET'])
 def render(instance_id):
   # Get the PWA JWT for basic auth context. This jwt will give enough access
   # to be able to query for config data within the microsite
-  pwa_jwt = request.cookies.get('pwa_jwt')
+  g.pwa_jwt = request.cookies.get('pwa_jwt')
 
-  # Make a request to the Experience Cloud Services to discover what the
-  # current config is.
-  headers = {'Authorization': 'Bearer ' + pwa_jwt}
-  lumavate_url = os.environ.get('BASE_URL')
-  url = '{}/pwa/v1/widget-instances/{}'.format(lumavate_url, instance_id)
-  data_response = requests.get(url, headers=headers)
+  data_response = make_get_request('/pwa/v1/widget-instances/{}'.format(instance_id))
 
   # Any non-200 status indicates a need to attempt a refresh of auth
   # credentials.  We can redirect to the root to refresh the cookie
@@ -188,5 +189,20 @@ def render(instance_id):
   # }
   version_data = data_response.json()['payload']['data']
 
+  api_context = {}
+  res = make_get_request('/pwa/v1/activation'.format(instance_id))
+  if res.status_code == 200:
+    api_context['activationData'] = res.json()['payload']['data']
+  elif res.status_code == 404:
+    api_context['activationData'] = 'No activation data'
+  else:
+    api_context['activationData'] = res.json()
+
+  res = make_get_request('/pwa/v1/token'.format(instance_id))
+  if res.status_code == 200:
+    api_context['tokenData'] = res.json()['payload']['data']
+  else:
+    api_context['tokenData'] = res.json()
+
   # We have the opportunity now to return a formatted message
-  return render_template('render.html', context=version_data)
+  return render_template('render.html', context=version_data, api_context=api_context)
