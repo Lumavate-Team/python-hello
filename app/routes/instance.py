@@ -206,3 +206,14 @@ def render(integration_cloud, widget_type, instance_id):
 
   # We have the opportunity now to return a formatted message
   return render_template('render.html', context=version_data, api_context=api_context)
+
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/discover/precache', methods=['GET'])
+def precache(integration_cloud, widget_type):
+  static_base = '{widgetPrefix}/discover'
+  data_uri_base = '{widgetPrefix}/instances/{instanceId}'
+
+  return jsonify({
+    'files': [{'file': static_base + '/file.json', 'versioned': False}],
+    'apis': [data_uri_base + '/data'],
+    'revision': ['123']
+  })

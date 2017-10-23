@@ -15,6 +15,9 @@ def create_app(options=None):
 
     @app.route('/<string:integration_cloud>/<string:widget_type>/discover/icons/<string:icon>')
     def return_icon(integration_cloud, widget_type, icon):
+      if icon.endswith('_thumb.svg'):
+        icon = 'hello_thumb.svg'
+
       return send_from_directory('icons', icon)
 
     app.register_blueprint(default_blueprint)
