@@ -1,36 +1,168 @@
 <html lang='en'>
 	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<noscript>JavaScript required for this site to work.</noscript>
+		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
 		<title>Hello World Widget</title>
+
+
+		<link rel="apple-touch-icon" sizes="180x180" href="/iot/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/iot/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/iot/favicon-16x16.png">
+		<link rel="manifest" href="/manifest.json">
+		<link rel="mask-icon" href="/iot/safari-pinned-tab.svg" color="#5bbad5">
+		<link rel="shortcut icon" href="/iot/favicon.ico">
+
+		<meta name="msapplication-config" content="/iot/browserconfig.xml">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
 	</head>
-<body>
-	<h1>{{ context.message }}</h1>
-<h2>Microsite Context</h2>
-<h3>Activation Data</h3>
-{{ api_context.activationData }}
-<h3>TokenData</h3>
-{{ api_context.tokenData }}
-<h2>Widget Data</h2>
-<table width='100%' border=2 cellpadding=0 cellspacing=0>
-  <tr><td>Color</td><td bgcolor='{{ context.helloColor }}'></td><tr>
-  <tr><td>Image</td><td><img alt='image' src='{{ context.helloIcon.previewSmall }}' /></td><tr>
-  <tr><td>Checkbox</td><td>{{ context.helloCheckbox }}</td><tr>
-  <tr><td>Toggle</td><td>{{ context.helloToggle }}</td><tr>
-  <tr><td>Translated Text</td><td>{{ context.helloTranslatedText }}</td><tr>
-  <tr><td>Numeric</td><td>{{ context.helloNumeric }}</td><tr>
-  <tr><td>Dropdown</td><td>{{ context.helloDropdown }}</td><tr>
-  <tr><td>Multiselect</td><td>{{ context.helloMultiselect }}</td><tr>
-  <tr><td>Model Image</td><td><img alt='image' src='{{ context.helloModelImage.previewSmall }}' /></td><tr>
-  <tr><td>Model Header Title</td><td>{{ context.helloModelHeaderTitle.title }}</td><tr>
-  <tr><td>Page Link</td><td>{{ context.helloPageLink }}</td><tr>
-</table>
-  <br>
-  {{ context.helloCheckbox }}
-  <br>
-  {{ context.helloTranslatedText }}
-  <hr>
-  <code>{{ context }}</code>
-	<script src="/iot/sw-register.min.js"></script>
-</body>
-<footer>
-	<center>{{ context.footerText }}</center>
+	<body>
+		<h1>{{ context.message }}</h1>
+		<h2>Microsite Context</h2>
+		<h3>Activation Data</h3>
+		{{ api_context.activationData }}
+		<h3>TokenData</h3>
+		{{ api_context.tokenData }}
+		<h3>Push Notification Subscription</h3>
+		<table width='100%' border=2 cellpadding=4 cellspacing=4>
+			<tr>
+				<td width="50%"><button id="btnSub" onclick="doSubscribe()">Subscribe Via Push</button></td>
+				<td width="50%"><div id="pushContainer"> Phone Number: <input id="tel" type="tel"><button id="btnSubPhone" onclick="clickPhone()">Subscribe Via SMS</button></div></td>
+			</tr>
+			<tr>
+				<td colspan="2"><button onclick="doUnsubscribe()" id="btnUnSub">UnSubscribe</button></td>
+			</tr>
+			<tr>
+				<td colspan="2"><button onclick="sendNotification()" id="btnSend">Send Notification</button></td>
+			</tr>
+			<tr>
+				<td colspan="2"><button onclick="sendSiteNotification()" id="btnSendSite">Send Site Wide Notification</button></td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					Current Status: <span id="pushStatus"></span>	
+				</td>
+			</tr>
+		</table>
+		<h2>Widget Data</h2>
+		<table width='100%' border=2 cellpadding=0 cellspacing=0>
+			<tr><td>Color</td><td bgcolor='{{ context.helloColor }}'></td></tr>
+			<tr><td>Image</td><td><img alt='image' src='{{ context.helloIcon.previewSmall }}' /></td></tr>
+			<tr><td>Checkbox</td><td>{{ context.helloCheckbox }}</td></tr>
+			<tr><td>Toggle</td><td>{{ context.helloToggle }}</td></tr>
+			<tr><td>Translated Text</td><td>{{ context.helloTranslatedText }}</td></tr>
+			<tr><td>Numeric</td><td>{{ context.helloNumeric }}</td></tr>
+			<tr><td>Dropdown</td><td>{{ context.helloDropdown }}</td></tr>
+			<tr><td>Multiselect</td><td>{{ context.helloMultiselect }}</td></tr>
+			<tr><td>Model Image</td><td><img alt='image' src='{{ context.helloModelImage.previewSmall }}' /></td></tr>
+			<tr><td>Model Header Title</td><td>{{ context.helloModelHeaderTitle.title }}</td></tr>
+			<tr><td>Page Link</td><td>{{ context.helloPageLink }}</td></tr>
+		</table>
+		<br>
+		{{ context.helloCheckbox }}
+		<br>
+		{{ context.helloTranslatedText }}
+		<hr>
+		<code>{{ context }}</code>
+		<script src="/sw-register.min.js"></script>
+		<footer>
+			<center>{{ context.footerText }}</center>
+		</footer>
+		<script type="text/javascript" src="push.js"></script>
+
+	</body>
+	<script>
+		function clickPhone() {
+			var val = $('#tel').val()
+			if(val) {
+				window.dispatchEvent(new CustomEvent('subscribesms', {
+					detail: {smsNumber:val}
+				}))
+			}
+		}
+
+function sendNotification() {
+	window.dispatchEvent( new Event('sendToSubscriber') );
+}
+
+function sendSiteNotification() {
+	window.dispatchEvent( new Event('sendToSite') );
+}
+
+function doSubscribe() {
+	window.dispatchEvent( new Event('subscribe') );
+}
+
+function doUnsubscribe() {
+	window.dispatchEvent( new Event('unsubscribe') );
+}
+
+window.addEventListener('unsubscribed', function (e) {
+	window.location.href = window.location.origin + "?s=0"
+});
+
+
+window.addEventListener('subscribed', function (e) {
+
+	if(e.detail.status && e.detail.status === 200) {
+		window.location.href = window.location.origin + "?s=" + e.detail.id;
+	} else {
+		pushStatus.html('Subscription Failed');
+	}
+});
+
+$( document ).ready(function() {
+
+	var subscriberId = Number('{{api_context.tokenData.subscriberId}}')
+	var subBtn = $('#btnSub');
+	var subBtnPhone = $('#btnSubPhone');
+	var unSubBtn = $('#btnUnSub');
+	var sendBtn = $('#btnSend');
+	var sendBtnSite = $('#btnSendSite');
+	var pushStatus = $('#pushStatus');
+	subBtn.prop("disabled", subscriberId > 0);
+	subBtnPhone.prop("disabled", subscriberId > 0);
+	unSubBtn.prop("disabled", subscriberId === 0);
+	sendBtn.prop("disabled", subscriberId === 0);
+	sendBtnSite.prop("disabled", subscriberId === 0);
+
+	if(!navigator.serviceWorker || !('showNotification' in ServiceWorkerRegistration.prototype)) {
+		pushStatus.html('Notifications are not supported on this browser, use SMS instead')
+		subBtn.prop("disabled", true);
+		return;
+	}
+
+	if(Notification.permission === 'denied') {
+		pushStatus.html('Notifications have been blocked by the user')
+		return
+	}
+
+
+	if(!('PushManager' in window)) {
+		pushStatus.html('Push messaging is not supported')
+		return;
+	}
+
+	navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
+		serviceWorkerRegistration.pushManager.getSubscription()
+			.then(function(subscription) {
+
+				if (!subscription) {
+					// We aren’t subscribed to push, so set UI
+					// to allow the user to enable push
+					pushStatus.html('No current subscription');
+					return;
+				} else {
+					pushStatus.html('Send Sample Notification');
+				}
+
+			})
+			.catch(function(err) {
+				console.log('Error during getSubscription()', err);
+			});
+	});
+});	
+	</script>
 </html>

@@ -165,6 +165,7 @@ def make_get_request(url):
   url = '{}/{}'.format(lumavate_url, url)
   return requests.get(url, headers=headers)
 
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/index.html', methods=['GET'])
 @default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>', methods=['GET'])
 def render(integration_cloud, widget_type, instance_id):
   # Get the PWA JWT for basic auth context. This jwt will give enough access
@@ -217,3 +218,19 @@ def precache(integration_cloud, widget_type):
     'apis': [data_uri_base + '/data'],
     'revision': ['123']
   })
+
+@default_blueprint.route("/<string:integration_cloud>/<string:widget_type>/push.js", methods=["GET"])
+def push(integration_cloud, widget_type):
+  try:
+
+    g.pwa_jwt = request.cookies.get('pwa_jwt')
+    response = make_response(render_template('push.js', public_key=os.environ.get('PUSH_SERVER_PUBLIC_KEY'), token=str(g.pwa_jwt)))
+    response.headers['Content-Type'] = 'application/x-javascript'
+
+    return response
+
+  except Exception as e:
+    raise
+    print(e, flush=True)
+    abort(404)
+>>>>>>> push notifications
