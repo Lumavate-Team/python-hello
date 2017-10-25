@@ -233,4 +233,3 @@ def push(integration_cloud, widget_type):
     raise
     print(e, flush=True)
     abort(404)
->>>>>>> push notifications
