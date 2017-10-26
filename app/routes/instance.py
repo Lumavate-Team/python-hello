@@ -213,10 +213,15 @@ def precache(integration_cloud, widget_type):
   static_base = '{widgetPrefix}/discover'
   data_uri_base = '{widgetPrefix}/instances/{instanceId}'
 
+  #return jsonify({
+  #  'files': [{'file': static_base + '/file.json', 'versioned': False}],
+  #  'apis': [data_uri_base + '/data'],
+  #  'revision': '123'
+  #})
   return jsonify({
-    'files': [{'file': static_base + '/file.json', 'versioned': False}],
-    'apis': [data_uri_base + '/data'],
-    'revision': ['123']
+    'files': [],
+    'apis': [],
+    'revision': '123'
   })
 
 @default_blueprint.route("/<string:integration_cloud>/<string:widget_type>/push.js", methods=["GET"])
