@@ -100,7 +100,7 @@ function deleteSubscriptionFromBackEnd() {
 			}))
 		}
 	}
-	xhr.open("DELETE", '/pwa/v1/delete-opt-in', true);
+	xhr.open("DELETE", 'delete-opt-in', true);
 	xhr.setRequestHeader('Authorization', 'Bearer ' + token);
 	xhr.send(null);
 
@@ -128,7 +128,7 @@ function sendSubscriptionToBackEnd(subscription, payload) {
 			}))
 		}
 	}
-	xhr.open("POST", '/pwa/v1/notification-opt-ins', true);
+	xhr.open("POST", 'notification-opt-ins', true);
 	xhr.setRequestHeader('Content-Type', 'application/json');
 	xhr.setRequestHeader('Authorization', 'Bearer ' + token);
 	xhr.send(JSON.stringify(payload));
@@ -146,7 +146,7 @@ function sendToSubscriber() {
 		}
 	}
 
-	xhr.open("POST", '/pwa/v1/send-to-subscriber', true);
+	xhr.open("POST", 'send-to-subscriber', true);
 	xhr.setRequestHeader('Content-Type', 'application/json');
 	xhr.setRequestHeader('Authorization', 'Bearer ' + token);
 	xhr.send(null);
@@ -163,7 +163,7 @@ function sendToSite() {
 		}
 	}
 
-	xhr.open("POST", '/pwa/v1/send-to-site', true);
+	xhr.open("POST", 'send-to-site', true);
 	xhr.setRequestHeader('Content-Type', 'application/json');
 	xhr.setRequestHeader('Authorization', 'Bearer ' + token);
 	xhr.send();

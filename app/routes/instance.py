@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, request, make_response, redirect, render_template, g
+from .signer import Signer
 import requests
+import json
 import os
 
 default_blueprint = Blueprint('default_blueprint', __name__)
@@ -154,16 +156,46 @@ def on_create_version(integration_cloud, widget_type, instance_id):
 
   return jsonify(make_payload(r))
 
-@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/instances/<int:instance_id>/<int:version_id>/after-create-version', methods=['POST'])
-def after_create_version(integration_cloud, widget_type, instance_id, version_id):
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/instances/<int:instance_id>/after-create-version', methods=['POST'])
+def after_create_version(integration_cloud, widget_type, instance_id):
   r = request.get_json()
   return jsonify(make_payload(r))
 
-def make_get_request(url):
-  headers = {'Authorization': 'Bearer ' + str(g.pwa_jwt)}
+def make_request(method, url, data=None):
+  headers = {'Authorization': 'Bearer ' + str(g.pwa_jwt), 'Content-Type': 'application/json'}
   lumavate_url = os.environ.get('BASE_URL')
-  url = '{}/{}'.format(lumavate_url, url)
-  return requests.get(url, headers=headers)
+  url = '{}{}'.format(lumavate_url, url)
+  s = Signer(os.environ.get('PUBLIC_KEY'), os.environ.get('PRIVATE_KEY'))
+  url = s.get_signed_url(method, url, data, headers)
+  if isinstance(data, dict):
+    data = json.dumps(data)
+
+  if method == 'get':
+    return requests.get(url, headers=headers)
+  elif method == 'post':
+    return requests.post(url, headers=headers, data=data)
+  else:
+    print('unknown method:' + method)
+
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/delete-opt-in', methods=['DELETE'])
+def delete_opt_in(integration_cloud, widget_type):
+  g.pwa_jwt = request.headers.get('Authorization')
+  return jsonify(make_request('delete', '/pwa/v1/delete-opt-in').json())
+
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/notification-opt-ins', methods=['POST'])
+def notification_opt_ins(integration_cloud, widget_type):
+  g.pwa_jwt = request.headers.get('Authorization')
+  return jsonify(make_request('post', '/pwa/v1/notification-opt-ins').json(), data=request.get_data())
+
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/send-to-subscriber', methods=['POST'])
+def send_to_subscriber(integration_cloud, widget_type):
+  g.pwa_jwt = request.headers.get('Authorization')
+  return jsonify(make_request('post', '/pwa/v1/send-to-subscriber').json())
+
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/send-to-site', methods=['POST'])
+def send_to_site(integration_cloud, widget_type):
+  g.pwa_jwt = request.headers.get('Authorization')
+  return jsonify(make_request('post', '/pwa/v1/send-to-site').json())
 
 @default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/index.html', methods=['GET'])
 @default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>', methods=['GET'])
@@ -172,13 +204,17 @@ def render(integration_cloud, widget_type, instance_id):
   # to be able to query for config data within the microsite
   g.pwa_jwt = request.cookies.get('pwa_jwt')
 
-  data_response = make_get_request('/pwa/v1/widget-instances/{}'.format(instance_id))
+  data_response = make_request('get', '/pwa/v1/widget-instances/{}'.format(instance_id))
 
   # Any non-200 status indicates a need to attempt a refresh of auth
   # credentials.  We can redirect to the root to refresh the cookie
-  if data_response.status_code != 200:
+  if data_response.status_code == 401:
     reauth = '{}?u={}'.format(get_root_uri(), get_instance_uri(instance_id))
     return redirect(reauth, 302)
+  elif data_response.status_code == 404:
+    return "Instance not found!"
+  elif data_response.status_code != 200:
+    return "Error getting widget data! status code=" +  str(data_response.status_code)
 
   # We made a successful call to discover the current config.  In this widget's
   # case this means we have the following payload:
@@ -191,7 +227,7 @@ def render(integration_cloud, widget_type, instance_id):
   version_data = data_response.json()['payload']['data']
 
   api_context = {}
-  res = make_get_request('/pwa/v1/activation'.format(instance_id))
+  res = make_request('get', '/pwa/v1/activation'.format(instance_id))
   if res.status_code == 200:
     api_context['activationData'] = res.json()['payload']['data']
   elif res.status_code == 404:
@@ -199,7 +235,7 @@ def render(integration_cloud, widget_type, instance_id):
   else:
     api_context['activationData'] = res.json()
 
-  res = make_get_request('/pwa/v1/token'.format(instance_id))
+  res = make_request('get', '/pwa/v1/token'.format(instance_id))
   if res.status_code == 200:
     api_context['tokenData'] = res.json()['payload']['data']
   else:
