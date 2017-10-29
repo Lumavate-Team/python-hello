@@ -13,6 +13,10 @@ RUN apt-get install -y libffi-dev
 COPY requirements.txt ./
 RUN python3.4 -m pip install -r requirements.txt
 
+COPY .git .git
+RUN git rev-parse HEAD > /revision
+RUN rm -rf .git
+
 RUN mkdir -p /app
 
 WORKDIR /app

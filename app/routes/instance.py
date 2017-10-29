@@ -177,28 +177,16 @@ def make_request(method, url, data=None):
   else:
     print('unknown method:' + method)
 
-@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/delete-opt-in', methods=['DELETE'])
-def delete_opt_in(integration_cloud, widget_type):
-  g.pwa_jwt = request.headers.get('Authorization')
-  return jsonify(make_request('delete', '/pwa/v1/delete-opt-in').json())
-
-@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/notification-opt-ins', methods=['POST'])
-def notification_opt_ins(integration_cloud, widget_type):
-  g.pwa_jwt = request.headers.get('Authorization')
-  return jsonify(make_request('post', '/pwa/v1/notification-opt-ins').json(), data=request.get_data())
-
-@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/send-to-subscriber', methods=['POST'])
-def send_to_subscriber(integration_cloud, widget_type):
-  g.pwa_jwt = request.headers.get('Authorization')
-  return jsonify(make_request('post', '/pwa/v1/send-to-subscriber').json())
-
-@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/send-to-site', methods=['POST'])
-def send_to_site(integration_cloud, widget_type):
-  g.pwa_jwt = request.headers.get('Authorization')
-  return jsonify(make_request('post', '/pwa/v1/send-to-site').json())
+##########################################################################
+# For convenience, redirect to index.html, which will get things running
+# 'under' the instance id
+##########################################################################
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>', methods=['GET'])
+def default(integration_cloud, widget_type, instance_id):
+  path = 'https://{}/{}/{}/{}/index.html'.format(request.host, integration_cloud, widget_type, instance_id)
+  return redirect(path, 302)
 
 @default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/index.html', methods=['GET'])
-@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>', methods=['GET'])
 def render(integration_cloud, widget_type, instance_id):
   # Get the PWA JWT for basic auth context. This jwt will give enough access
   # to be able to query for config data within the microsite
@@ -244,26 +232,14 @@ def render(integration_cloud, widget_type, instance_id):
   # We have the opportunity now to return a formatted message
   return render_template('render.html', context=version_data, api_context=api_context)
 
-@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/discover/precache', methods=['GET'])
-def precache(integration_cloud, widget_type):
-  static_base = '{widgetPrefix}/discover'
-  data_uri_base = '{widgetPrefix}/instances/{instanceId}'
-
-  #return jsonify({
-  #  'files': [{'file': static_base + '/file.json', 'versioned': False}],
-  #  'apis': [data_uri_base + '/data'],
-  #  'revision': '123'
-  #})
-  return jsonify({
-    'files': [],
-    'apis': [],
-    'revision': '123'
-  })
-
-@default_blueprint.route("/<string:integration_cloud>/<string:widget_type>/push.js", methods=["GET"])
-def push(integration_cloud, widget_type):
+##########################################################################
+# Included files - These files will be included directly upon rendering the main
+# file.  Using the pwa_jwt without checking validity will be fine because
+# the main file will do the checking
+##########################################################################
+@default_blueprint.route("/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/push.js", methods=["GET"])
+def push(integration_cloud, widget_type, instance_id):
   try:
-
     g.pwa_jwt = request.cookies.get('pwa_jwt')
     response = make_response(render_template('push.js', public_key=os.environ.get('PUSH_SERVER_PUBLIC_KEY'), token=str(g.pwa_jwt)))
     response.headers['Content-Type'] = 'application/x-javascript'
@@ -274,3 +250,54 @@ def push(integration_cloud, widget_type):
     raise
     print(e, flush=True)
     abort(404)
+
+##########################################################################
+# APIs.  Critical that these don't read the jwt form teh cookis.  Should
+# always be sent in as a header to avoid CSRF attacks
+##########################################################################
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/delete-opt-in', methods=['DELETE'])
+def delete_opt_in(integration_cloud, widget_type, instance_id):
+  g.pwa_jwt = request.headers.get('Authorization')
+  return jsonify(make_request('delete', '/pwa/v1/delete-opt-in').json())
+
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/notification-opt-ins', methods=['POST'])
+def notification_opt_ins(integration_cloud, widget_type, instance_id):
+  g.pwa_jwt = request.headers.get('Authorization')
+  return jsonify(make_request('post', '/pwa/v1/notification-opt-ins').json(), data=request.get_data())
+
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/send-to-subscriber', methods=['POST'])
+def send_to_subscriber(integration_cloud, widget_type, instance_id):
+  g.pwa_jwt = request.headers.get('Authorization')
+  return jsonify(make_request('post', '/pwa/v1/send-to-subscriber').json())
+
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/send-to-site', methods=['POST'])
+def send_to_site(integration_cloud, widget_type, instance_id):
+  g.pwa_jwt = request.headers.get('Authorization')
+  return jsonify(make_request('post', '/pwa/v1/send-to-site').json())
+
+##########################################################################
+# Describe what files can & should be cached
+##########################################################################
+@default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/discover/precache', methods=['GET'])
+def precache(integration_cloud, widget_type):
+  static_base = '{widgetPrefix}/discover'
+  data_uri_base = '{widgetPrefix}/{instanceId}'
+
+  try:
+    git_revision = open('/revision', 'r')
+    commit_hash = git_revision.readline().strip('\n')
+    git_revision.close()
+  except:
+    commit_hash = 'develop'
+
+  #return jsonify({
+  #  'files': [{'file': static_base + '/file.json', 'versioned': False}],
+  #  'apis': [data_uri_base + '/data'],
+  #  'revision': '123'
+  #})
+  return jsonify({
+    'files': [],
+    'apis': [data_uri_base + '/push.js'],
+    'revision': commit_hash
+  })
+
