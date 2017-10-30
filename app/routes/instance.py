@@ -296,8 +296,8 @@ def precache(integration_cloud, widget_type):
   #  'revision': '123'
   #})
   return jsonify({
-    'files': [],
-    'apis': [data_uri_base + '/push.js'],
+    'preCache': [],
+    'runtimeCache': [{'url': data_uri_base + '/push.js', 'versioned': False}],
     'revision': commit_hash
   })
 
