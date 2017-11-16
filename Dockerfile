@@ -1,23 +1,19 @@
-FROM ubuntu:14.04.2
-
-RUN apt-get clean
-RUN apt-get install -f
-RUN dpkg --configure -a
-
-RUN apt-get update
-RUN apt-get install -y git --fix-missing
-RUN apt-get install -y python3-pip --fix-missing
-RUN apt-get install -y libpq-dev --fix-missing
-RUN apt-get install -y libffi-dev
-
-COPY requirements.txt ./
-RUN python3.4 -m pip install -r requirements.txt
+FROM python:3.5.4-alpine
 
 COPY .git .git
-RUN git rev-parse HEAD > /revision
-RUN rm -rf .git
+COPY requirements.txt ./
 
-RUN mkdir -p /app
+RUN apk add --no-cache --virtual .build-deps \
+		gcc \
+		git \
+		libc-dev \
+		libgcc \
+		linux-headers \
+	&& pip3 install -r requirements.txt \
+	&& git rev-parse HEAD > /revision \
+	&& rm -rf .git \
+	&& apk del .build-deps \
+	&& mkdir -p /app
 
 WORKDIR /app
 COPY ./app /app
