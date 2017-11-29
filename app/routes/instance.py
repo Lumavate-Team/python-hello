@@ -145,8 +145,8 @@ def get_properties(integration_cloud, widget_type):
 def get_root_uri():
   return 'https://' + request.host
 
-def get_instance_uri(instance_id):
-  return get_root_uri() + '/ic/hello/' + str(instance_id)
+def get_instance_uri(instance_id, integration_cloud, widget_type):
+  return get_root_uri() + '/{}/{}/{}'.format(integration_cloud, widget_type, instance_id)
 
 @default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/instances/<int:instance_id>/on-create-version', methods=['POST'])
 def on_create_version(integration_cloud, widget_type, instance_id):
@@ -197,7 +197,7 @@ def render(integration_cloud, widget_type, instance_id):
   # Any non-200 status indicates a need to attempt a refresh of auth
   # credentials.  We can redirect to the root to refresh the cookie
   if data_response.status_code == 401:
-    reauth = '{}?u={}'.format(get_root_uri(), get_instance_uri(instance_id))
+    reauth = '{}?u={}'.format(get_root_uri(), get_instance_uri(instance_id, integration_cloud, widget_type))
     return redirect(reauth, 302)
   elif data_response.status_code == 404:
     return "Instance not found!"
