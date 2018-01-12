@@ -105,23 +105,6 @@ def get_properties(integration_cloud, widget_type):
     {
       "classification": "Hello World Tab",
       "section": "Hello World Section",
-      "label": "Hello Model Image",
-      "name": "helloModelImage",
-      "type": "model-image-upload",
-      "default": {
-        "mode": "model-image"
-      }
-    },
-    {
-      "classification": "Hello World Tab",
-      "section": "Hello World Section",
-      "label": "Hello Model Header Title",
-      "name": "helloModelHeaderTitle",
-      "type": "header-title"
-    },
-    {
-      "classification": "Hello World Tab",
-      "section": "Hello World Section",
       "label": "Hello Model Page Link",
       "name": "helloPageLink",
       "type": "page-link"
