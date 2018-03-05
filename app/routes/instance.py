@@ -126,7 +126,7 @@ def get_properties(integration_cloud, widget_type):
   return jsonify(make_payload(properties))
 
 def get_root_uri():
-  return 'https://' + request.host
+  return 'http://' + request.host
 
 def get_instance_uri(instance_id, integration_cloud, widget_type):
   return get_root_uri() + '/{}/{}/{}'.format(integration_cloud, widget_type, instance_id)
@@ -166,7 +166,7 @@ def make_request(method, url, data=None):
 ##########################################################################
 @default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>', methods=['GET'])
 def default(integration_cloud, widget_type, instance_id):
-  path = 'https://{}/{}/{}/{}/index.html'.format(request.host, integration_cloud, widget_type, instance_id)
+  path = 'http://{}/{}/{}/{}/index.html'.format(request.host, integration_cloud, widget_type, instance_id)
   return redirect(path, 302)
 
 @default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/index.html', methods=['GET'])
@@ -209,6 +209,8 @@ def render(integration_cloud, widget_type, instance_id):
   res = make_request('get', '/pwa/v1/token'.format(instance_id))
   if res.status_code == 200:
     api_context['tokenData'] = res.json()['payload']['data']
+  elif res.status_code == 404:
+    api_context['tokenData'] = 'No token data'
   else:
     api_context['tokenData'] = res.json()
 
