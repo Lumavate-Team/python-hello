@@ -7,6 +7,7 @@ import rollbar
 def create_app(options=None):
     app = Flask(__name__)
     app.config.from_envvar('APP_SETTINGS')
+    # TEST BUILD TRIGGER
 
     # apply any configuration override options
     if options is not None:
