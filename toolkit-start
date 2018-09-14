@@ -29,8 +29,6 @@ fi
 
 echo "Running your Widget Container"
 docker run --rm -d \
-				--volume "$(pwd)"/widget:/go/src/widget:rw \
-				--mount type=bind,src=/Users/tbutler/Dev/widgets/lumavate-go-common,dst=/go/src/github.com/Lumavate-Team/lumavate-go-common \
 				-e "PRIVATE_KEY=LXycaMpw5BzgfhsS4ydNxGzJ36qMnPrQHI8u2x3wQCZCZyGtZ4sOQbkEWnHmVchZEa79a0Y3xK7IKCymSLkugyabbJUGuXfyuoKL" \
 				-e "PUBLIC_KEY=mIhuoMJh0jbA5W4pUUNK" \
 				-e "APP_SETTINGS=./config/dev.cfg" \
