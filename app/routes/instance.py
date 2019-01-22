@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, make_response, redirect, render_template, g
-from .signer import Signer
+from lumavate_signer import Signer
 import requests
 import json
 import os
@@ -166,7 +166,7 @@ def make_request(method, url, data=None):
 ##########################################################################
 @default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>', methods=['GET'])
 def default(integration_cloud, widget_type, instance_id):
-  path = 'http://{}/{}/{}/{}/index.html'.format(request.host, integration_cloud, widget_type, instance_id)
+  path = 'https://{}/{}/{}/{}/index.html'.format(request.host, integration_cloud, widget_type, instance_id)
   return redirect(path, 302)
 
 @default_blueprint.route('/<string:integration_cloud>/<string:widget_type>/<int:instance_id>/index.html', methods=['GET'])
