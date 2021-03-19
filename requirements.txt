@@ -6,6 +6,6 @@ Flask-Redis==0.3.0
 greenlet==0.4.12
 gunicorn==19.7.1
 itsdangerous==0.24
-Jinja2==2.9
+Jinja2==2.11.3
 blinker
 rollbar
